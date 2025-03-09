@@ -13,6 +13,7 @@
 class AGBGridManager;
 class UBoxComponent;
 class UGBGridEntityData;
+class UPaperSprite;
 
 UCLASS(Blueprintable)
 class GB_API AGBTileBase : public AActor
@@ -100,7 +101,7 @@ public:
 
 	/** Place grid entity on tile, trap, tower etc. */
 	UFUNCTION(BlueprintCallable, Category = "Set Variable Functions")
-		void PlaceGridEntityOnTile(UClass* GridEntity);
+		void PlaceGridEntityOnTile(UClass* GridEntity, UPaperSprite* GridEntitySprite);
 
 
 protected:
@@ -108,7 +109,9 @@ protected:
 
 private:
 
-	/** Array of neighboring tile directions */
+	/** Array of neighboring tile directions
+		Here we can for example remove diagonal movement.
+	*/
 		const TArray<FIntPoint> Dirs = {
 		FIntPoint(0, 1), FIntPoint(-1, 0), FIntPoint(0, -1), FIntPoint(1, 0),
 		FIntPoint(1, 1), FIntPoint(1, -1), FIntPoint(-1, -1), FIntPoint(-1, 1) };

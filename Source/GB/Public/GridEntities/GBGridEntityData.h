@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "Grid\GBGridEditActionType.h"
+#include "PaperSprite.h"
+#include "Grid/GBGridEditActionType.h"
 #include "GBGridEntityData.generated.h"
 
 /**
- * 
+ * Use this class to hold data for GridEntitities to display to player.
  */
 
 UCLASS(BlueprintType)
@@ -29,4 +30,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EGBGridEditActions GridEditAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPaperSprite* GridEntitySprite;
 };

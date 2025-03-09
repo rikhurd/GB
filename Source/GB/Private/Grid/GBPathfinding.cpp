@@ -61,7 +61,7 @@ TArray<AGBTileBase*> UGBPathfinding::FindPath(AGBTileBase* startNode, AGBTileBas
 		}
 
 		//Process walkable and non-processed tiles here
-		for (auto* neighbor : current->Neighbors)
+		for (AGBTileBase* neighbor : current->Neighbors)
 		{
 			if ( neighbor->Walkable == true && !processed.Contains(neighbor))
 			{

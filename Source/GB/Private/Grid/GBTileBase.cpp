@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Grid/GBGridEditActionType.h"
 #include "GridEntities/GBGridEntityData.h"
+#include "PaperSprite.h"
 
 // Sets default values
 AGBTileBase::AGBTileBase()
@@ -88,7 +89,7 @@ bool AGBTileBase::ProcessEditAction(UGBGridEntityData* CurrentData)
 			break;
 		case EGBGridEditActions::Tower:
 			if (IsValid(CurrentData->GridEntityActor) && Placeable == true) {
-				PlaceGridEntityOnTile(CurrentData->GridEntityActor);
+				PlaceGridEntityOnTile(CurrentData->GridEntityActor, CurrentData->GridEntitySprite);
 				return true;
 			}
 			else {
@@ -119,11 +120,17 @@ void AGBTileBase::MakeGridPlaceable() {
 	}
 }
 
-void AGBTileBase::PlaceGridEntityOnTile(UClass* GridEntityActorClass) {
+void AGBTileBase::PlaceGridEntityOnTile(UClass* GridEntityActorClass, UPaperSprite* GridEntitySprite) {
 	if (IsValid(GridEntityActorClass) && GetWorld())
 	{
+		FVector GridEntitySpawnLocation = GetActorLocation();
+		if (IsValid(GridEntitySprite)) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Source size: X=%.2f, Y=%.2f"), GridEntitySprite->GetSourceSize().X, GridEntitySprite->GetSourceSize().Y));
+			GridEntitySpawnLocation += FVector(0,0,GridEntitySprite->GetSourceSize().Y * 0.5f);
+		}
+
 		// Spawn the actor
-		GetWorld()->SpawnActor<AActor>(GridEntityActorClass, GetActorLocation(), GetActorRotation());
+		GetWorld()->SpawnActor<AActor>(GridEntityActorClass, GridEntitySpawnLocation, GetActorRotation());
 
 		Walkable = true;
 		Placeable = false;
