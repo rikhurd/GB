@@ -58,7 +58,7 @@ void AGBGridManager::SpawnGrid()
 	}
 
 
-	//Sets tile neighbors based on intpoint values
+	// Sets tile neighbors based on intpoint values
 	for (auto& tile : TileBaseMap)
 	{
 		tile.Value->SetNeighbors(this);
@@ -91,7 +91,7 @@ FIntPoint AGBGridManager::CalculateGridTileIndex(float IndexX, float IndexY)
 
 AGBTileBase* AGBGridManager::GetTileAtPosition(FIntPoint pos)
 {
-	auto tile = TileBaseMap.FindRef(pos);
+	AGBTileBase* tile = TileBaseMap.FindRef(pos);
 
 	return tile;
 }

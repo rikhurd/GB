@@ -13,7 +13,7 @@
 class AGBGridManager;
 class UBoxComponent;
 class UGBGridEntityData;
-class UPaperSprite;
+class AGBGridEntityBase;
 
 UCLASS(Blueprintable)
 class GB_API AGBTileBase : public AActor
@@ -53,9 +53,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Pathfinding Variables")
 		bool Placeable = false;
 
-	/** Does the tile spawn a grid entity on spawn and not a Tile */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Pathfinding Variables")
-		bool SpawnMesh = true;
+	/** Actor that inhibits this tile */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tile Variables")
+		TSubclassOf<AGBGridEntityBase> GridEntityActorClass;
 
 	/** Array of neighboring grid tiles */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile location variables")
@@ -96,12 +96,20 @@ public:
 		bool ProcessEditAction(UGBGridEntityData* CurrentData);
 
 	/** Make tile be able to place GridEntities */
-	UFUNCTION(BlueprintCallable, Category = "Set Variable Functions")
-		void MakeGridPlaceable();
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Tile Functions")
+		void UpdateTile();
+
+		/** Make tile be able to place GridEntities */
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Tile Functions")
+		void SetTilePlaceable();
+
+	/** Make tile be blocked and its mesh visible */
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Tile Functions")
+	void SetTileBlocked();
 
 	/** Place grid entity on tile, trap, tower etc. */
-	UFUNCTION(BlueprintCallable, Category = "Set Variable Functions")
-		void PlaceGridEntityOnTile(UClass* GridEntity, UPaperSprite* GridEntitySprite);
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Tile Functions")
+		void PlaceGridEntityOnTile();
 
 
 protected:
@@ -112,7 +120,10 @@ private:
 	/** Array of neighboring tile directions
 		Here we can for example remove diagonal movement.
 	*/
-		const TArray<FIntPoint> Dirs = {
-		FIntPoint(0, 1), FIntPoint(-1, 0), FIntPoint(0, -1), FIntPoint(1, 0),
-		FIntPoint(1, 1), FIntPoint(1, -1), FIntPoint(-1, -1), FIntPoint(-1, 1) };
+		const TArray<FIntPoint> Directions = {
+		FIntPoint(0, 1), FIntPoint(-1, 0), FIntPoint(0, -1), FIntPoint(1, 0) };
+
+		/* Remove diagonal movement.
+		FIntPoint(1, 1), FIntPoint(1, -1), FIntPoint(-1, -1), FIntPoint(-1, 1)
+		*/
 };

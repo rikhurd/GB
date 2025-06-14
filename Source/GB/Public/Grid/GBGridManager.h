@@ -49,7 +49,7 @@ private:
 		TSubclassOf<AGBTileBase> TileBase;
 
 	/** Used to spawn the grid to manager's location */
-	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Grid spawner")
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "Grid functions")
 		void SpawnGrid();
 
 	/** Calculates grid tile location for spawning the grid */

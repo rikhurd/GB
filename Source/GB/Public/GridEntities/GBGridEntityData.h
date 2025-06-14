@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "PaperSprite.h"
 #include "Grid/GBGridEditActionType.h"
+#include "GridEntities/GBGridEntityBase.h"
 #include "GBGridEntityData.generated.h"
 
 /**
@@ -20,7 +21,7 @@ class GB_API UGBGridEntityData : public UDataAsset
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<AActor> GridEntityActor;
+	TSubclassOf<AGBGridEntityBase> GridEntityActor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText GridEntityName;
