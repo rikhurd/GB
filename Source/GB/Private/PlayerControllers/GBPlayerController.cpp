@@ -107,17 +107,23 @@ void AGBPlayerController::Choose(const FInputActionValue& Value)
 AGBTileBase* AGBPlayerController::GetTileUnderCursor()
 {
     // ECC_GameTraceChannel1 = Custom collision Object channel "GridTile"
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
+    //TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    //ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
+
+    ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECC_Visibility);
 
     FHitResult HitResult;
-    bool Hit = GetHitResultUnderCursorForObjects(ObjectTypes, true, HitResult);
+    bool Hit = GetHitResultUnderCursorByChannel(TraceType, true, HitResult);
 
     if (Hit && HitResult.GetActor())
     {
-        AGBTileBase* HitTile = Cast<AGBTileBase>(HitResult.GetActor());
-        UE_LOG(LogTemp, Warning, TEXT("Tile hit: %s"), *HitTile->GetName());
-        return HitTile;
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Tile hit at: %s"), *HitResult.Location.ToString()));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Actor hit: %s"), *HitResult.GetActor()->GetName()));
+
+        // Make it so we get the GRID actor when clicking the 1 Grid tile mesh ontop of the grid or 2 the floor mesh
+        //AGBTileBase* HitTile = Cast<AGBTileBase>(HitResult.GetActor());
+       UE_LOG(LogTemp, Warning, TEXT("Actor hit: %s"), *HitResult.GetActor()->GetName());
+       // return HitTile;
     }
     return nullptr;
 }
