@@ -69,4 +69,6 @@ private:
 
     UFUNCTION(BlueprintCallable)
     AGBTileBase* GetTileUnderCursor();
+
+    TArray<TEnumAsByte<EObjectTypeQuery>> GridObjectTypes;
 };
