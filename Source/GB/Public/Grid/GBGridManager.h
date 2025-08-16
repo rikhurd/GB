@@ -7,6 +7,15 @@
 
 #include "GBGridManager.generated.h"
 
+
+/*
+
+THIS ACTOR IS NO MORE USED REFER TO GBGridSystem
+
+Still in project for reference. Deleted later
+
+*/
+
 //Forward declaration
 class AGBTileBase;
 

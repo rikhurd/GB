@@ -2,7 +2,7 @@
 
 
 #include "Grid/GBGlobalGridManager.h"
-#include "Grid/GBDynamicGridManager.h"
+#include "Grid/GBGridChunk.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -60,7 +60,7 @@ void AGBGlobalGridManager::SpawnGrid() {
 
 			FVector SpawnLocation = FVector(StartTile.X * TileSize, StartTile.Y * TileSize, 0);
 
-			AGBDynamicGridManager* GridChunk = GetWorld()->SpawnActorDeferred<AGBDynamicGridManager>(
+			AGBGridChunk* GridChunk = GetWorld()->SpawnActorDeferred<AGBGridChunk>(
 				GridManagerClass,
 				FTransform(SpawnLocation),
 				this,           // Owner
@@ -96,7 +96,7 @@ void AGBGlobalGridManager::SpawnGrid() {
 
 void AGBGlobalGridManager::ClearChunks()
 {
-	for (AGBDynamicGridManager* Chunk : SpawnedChunks)
+	for (AGBGridChunk* Chunk : SpawnedChunks)
 	{
 		if (Chunk && !Chunk->IsPendingKillPending())
 		{

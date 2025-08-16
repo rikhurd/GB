@@ -7,8 +7,15 @@
 
 #include "GBGlobalGridManager.generated.h"
 
+/*
+
+THIS ACTOR IS NO MORE USED REFER TO GBGridSystem
+
+Still in project for reference. Deleted later
+*/
+
 //Forward declaration
-class AGBDynamicGridManager;
+class AGBGridChunk;
 
 UCLASS()
 class GB_API AGBGlobalGridManager : public AActor
@@ -41,10 +48,10 @@ private:
 	FIntPoint LastChunkSize;
 
 	UPROPERTY(EditAnywhere, Category = "Default")
-	TSubclassOf<AGBDynamicGridManager> GridManagerClass;
+	TSubclassOf<AGBGridChunk> GridManagerClass;
 
 	UPROPERTY()
-	TArray<AGBDynamicGridManager*> SpawnedChunks;
+	TArray<AGBGridChunk*> SpawnedChunks;
 
 	/** Used to spawn the grid to manager's location */
 	UFUNCTION(Category = "Grid functions")

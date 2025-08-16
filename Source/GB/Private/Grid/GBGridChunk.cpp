@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Grid/GBDynamicGridManager.h"
+#include "Grid/GBGridChunk.h"
 
-void AGBDynamicGridManager::OnConstruction(const FTransform& Transform)
+void AGBGridChunk::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
@@ -11,17 +11,21 @@ void AGBDynamicGridManager::OnConstruction(const FTransform& Transform)
     UE_LOG(LogTemp, Warning, TEXT("OnConstruction called"));
 }
 
-double AGBDynamicGridManager::GridHeight() const
+void AGBGridChunk::InitializeChunk(const FGridChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize)
+{
+}
+
+double AGBGridChunk::GridHeight() const
 {
     return GridChunkSize.X * TileSize;;
 }
 
-double AGBDynamicGridManager::GridWidth() const
+double AGBGridChunk::GridWidth() const
 {
     return GridChunkSize.Y * TileSize;;
 }
 
-bool AGBDynamicGridManager::TileValid(FIntPoint TileIndex) const
+bool AGBGridChunk::TileValid(FIntPoint TileIndex) const
 {
     if (TileIndex.X >= GridChunkSize.X && TileIndex.X < GridChunkSize.X &&
         TileIndex.Y >= GridChunkSize.Y && TileIndex.Y < GridChunkSize.Y) {
@@ -30,7 +34,7 @@ bool AGBDynamicGridManager::TileValid(FIntPoint TileIndex) const
     return false;
 }
 
-void AGBDynamicGridManager::CreateLine(int32 X, int32 Y, UPARAM(ref)TArray<FVector>& Vertices, UPARAM(ref)TArray<FIntVector>& Triangles)
+void AGBGridChunk::CreateLine(int32 X, int32 Y, UPARAM(ref)TArray<FVector>& Vertices, UPARAM(ref)TArray<FIntVector>& Triangles)
 {
     float XStartPosition = X * TileSize;
     float YStartPosition = Y * TileSize;
@@ -71,7 +75,7 @@ void AGBDynamicGridManager::CreateLine(int32 X, int32 Y, UPARAM(ref)TArray<FVect
 
 
 
-void AGBDynamicGridManager::LocationToTile(FVector Location, bool& Valid, FIntPoint& TileIndex)
+void AGBGridChunk::LocationToTile(FVector Location, bool& Valid, FIntPoint& TileIndex)
 {
     // Translate world location relative to the grid origin
     float LocalX = Location.X - GetActorLocation().X;
@@ -95,7 +99,7 @@ void AGBDynamicGridManager::LocationToTile(FVector Location, bool& Valid, FIntPo
     Valid = TileValid(TileIndex);
 }
 
-bool AGBDynamicGridManager::TileToGridLocation(FIntPoint& TileIndex, bool Center)
+bool AGBGridChunk::TileToGridLocation(FIntPoint& TileIndex, bool Center)
 {
     if (!TileValid(TileIndex)) {
         return false;

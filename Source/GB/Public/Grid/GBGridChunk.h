@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "DynamicMeshActor.h"
-#include "GBDynamicGridManager.generated.h"
+#include "GBGridChunk.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GB_API AGBDynamicGridManager : public ADynamicMeshActor
+class GB_API AGBGridChunk : public ADynamicMeshActor
 {
 	GENERATED_BODY()
 
@@ -19,6 +19,8 @@ public:
 	// OnConstruction is called in the editor whenever the actor is moved or a property is changed.
 	// Similar to Constructor in Blueprints
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	void InitializeChunk(const FGridChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize);
 
 	/** Size of the GridChunk */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere = "Default")
@@ -35,6 +37,12 @@ public:
 	/** Gets the TileIndex and returns tile's world location */
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	bool TileToGridLocation(FIntPoint& TileIndex, bool Center);
+
+protected:
+
+	// Array of tile data (ChunkSize x ChunkSize)
+	UPROPERTY()
+	TArray<FGridTileData> TileData;
 
 private:
 

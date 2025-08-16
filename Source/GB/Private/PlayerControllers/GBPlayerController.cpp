@@ -8,7 +8,7 @@
 #include "GameFramework/Character.h"
 #include "Grid/GBTileBase.h"
 #include "GridEntities/GBGridEntityData.h"
-#include "Grid/GBDynamicGridManager.h"
+#include "Grid/GBGridChunk.h"
 
 AGBPlayerController::AGBPlayerController(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
@@ -116,7 +116,7 @@ AGBTileBase* AGBPlayerController::GetTileUnderCursor()
 
     if (Hit && HitResult.GetActor())
     {
-        AGBDynamicGridManager* HitGrid = Cast<AGBDynamicGridManager>(HitResult.GetActor());
+        AGBGridChunk* HitGrid = Cast<AGBGridChunk>(HitResult.GetActor());
 
         bool ValidTile = false;
 
