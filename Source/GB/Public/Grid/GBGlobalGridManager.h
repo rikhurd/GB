@@ -36,7 +36,7 @@ public:
 
 	/** Please add a variable description */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	FIntPoint GridChunkSize = { 3,3 };
+	FIntPoint ChunkSize = { 3,3 };
 
 	/** Please add a variable description */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")

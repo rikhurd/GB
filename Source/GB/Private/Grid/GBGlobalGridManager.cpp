@@ -17,13 +17,13 @@ AGBGlobalGridManager::AGBGlobalGridManager()
 
 void AGBGlobalGridManager::OnConstruction(const FTransform& Transform)
 {
-	if (GlobalGridSize != LastGridCount || GridChunkSize != LastChunkSize)
+	if (GlobalGridSize != LastGridCount || ChunkSize != LastChunkSize)
 	{
 		ClearChunks();
 		SpawnGrid();
 
 		LastGridCount = GlobalGridSize;
-		LastChunkSize = GridChunkSize;
+		LastChunkSize = ChunkSize;
 	}
 	
 }
@@ -44,19 +44,19 @@ void AGBGlobalGridManager::Tick(float DeltaTime)
 
 void AGBGlobalGridManager::SpawnGrid() {
 
-	int32 NumChunksX = FMath::DivideAndRoundUp(GlobalGridSize.X, GridChunkSize.X);
-	int32 NumChunksY = FMath::DivideAndRoundUp(GlobalGridSize.Y, GridChunkSize.Y);
+	int32 NumChunksX = FMath::DivideAndRoundUp(GlobalGridSize.X, ChunkSize.X);
+	int32 NumChunksY = FMath::DivideAndRoundUp(GlobalGridSize.Y, ChunkSize.Y);
 
 	/* Spawns the grid and calculates needed positions */
 	for (int IndexX = 0; IndexX != NumChunksX; ++IndexX)
 	{
 		for (int IndexY = 0; IndexY != NumChunksY; ++IndexY)
 		{
-			FIntPoint StartTile(NumChunksX * GridChunkSize.X, NumChunksY * GridChunkSize.Y);
+			FIntPoint StartTile(NumChunksX * ChunkSize.X, NumChunksY * ChunkSize.Y);
 
 			FIntPoint ActualChunkSize;
-			ActualChunkSize.X = FMath::Min(GridChunkSize.X, GlobalGridSize.X - StartTile.X);
-			ActualChunkSize.Y = FMath::Min(GridChunkSize.Y, GlobalGridSize.Y - StartTile.Y);
+			ActualChunkSize.X = FMath::Min(ChunkSize.X, GlobalGridSize.X - StartTile.X);
+			ActualChunkSize.Y = FMath::Min(ChunkSize.Y, GlobalGridSize.Y - StartTile.Y);
 
 			FVector SpawnLocation = FVector(StartTile.X * TileSize, StartTile.Y * TileSize, 0);
 
@@ -68,7 +68,7 @@ void AGBGlobalGridManager::SpawnGrid() {
 				ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 			if (IsValid(GridChunk)) {
-				GridChunk->GridChunkSize = GridChunkSize;
+				//GridChunk->ChunkSize = ChunkSize;
 			}
 
 			UGameplayStatics::FinishSpawningActor(GridChunk, FTransform(SpawnLocation));

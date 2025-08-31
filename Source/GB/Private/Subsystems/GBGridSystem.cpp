@@ -10,6 +10,12 @@ void UGBGridSystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	ChunkMap.Empty();
 
+    // Determine starting chunk coord (usually 0,0)
+    FChunkCoord StartChunk(0, 0);
+
+    // Spawn the first chunk actor
+    CreateChunk(StartChunk);
+
 	UE_LOG(LogTemp, Log, TEXT("GridSubsystem initialized with ChunkSize=%d, TileSize=%f"), ChunkSize, TileSize);
 }
 
@@ -21,28 +27,34 @@ void UGBGridSystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-AGBGridChunk* UGBGridSystem::GetOrCreateChunk(const FChunkCoord& ChunkCoord)
+AGBGridChunk* UGBGridSystem::GetChunk(const FChunkCoord& ChunkCoord) const
 {
-    if (AGBGridChunk** ChunkPtr = ChunkMap.Find(ChunkCoord))
+    if (AGBGridChunk* const* ChunkPtr = ChunkMap.Find(ChunkCoord))
     {
         return *ChunkPtr;
     }
+    return nullptr;
+}
 
-    // Spawn new chunk
+AGBGridChunk* UGBGridSystem::CreateChunk(const FChunkCoord& ChunkCoord)
+{
     UWorld* World = GetWorld();
-    if (!World)
-    {
-        return nullptr;
-    }
+    if (!World) return nullptr;
 
-    // Calculate world position (center of chunk)
-    FVector SpawnLocation(ChunkCoord.X * ChunkSize * TileSize, ChunkCoord.Y * ChunkSize * TileSize, 0.0f);
-    AGBGridChunk* NewChunk = World->SpawnActor<AGBGridChunk>(AGBGridChunk::StaticClass(), SpawnLocation, FRotator::ZeroRotator);
+    FVector SpawnLocation(
+        ChunkCoord.X * ChunkSize * TileSize,
+        ChunkCoord.Y * ChunkSize * TileSize,
+        0.0f);
+
+    AGBGridChunk* NewChunk = World->SpawnActor<AGBGridChunk>(
+        AGBGridChunk::StaticClass(),
+        SpawnLocation,
+        FRotator::ZeroRotator);
 
     if (NewChunk)
     {
-        // Initialize chunk with size and tile data (e.g., procedural or from mission)
-        NewChunk->InitializeChunk(ChunkCoord, ChunkSize, TileSize);
+        NewChunk->SetChunkParams(ChunkCoord, ChunkSize, TileSize);
+        NewChunk->InitializeChunk();
         ChunkMap.Add(ChunkCoord, NewChunk);
     }
 

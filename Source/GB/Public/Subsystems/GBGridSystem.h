@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "Grid/GBGridStructs.h"
 #include "GBGridSystem.generated.h"
 
 class AGBGridChunk;
@@ -11,46 +12,7 @@ class AGBGridChunk;
  * 
  */
 
- // Struct for chunk coordinates (global grid)
-USTRUCT(BlueprintType)
-struct FChunkCoord
-{
-    GENERATED_BODY()
-    UPROPERTY(BlueprintReadWrite, Category = "Grid")
-    int32 X;
-    UPROPERTY(BlueprintReadWrite, Category = "Grid")
-    int32 Y;
-
-    FChunkCoord() : X(0), Y(0) {}
-    FChunkCoord(int32 InX, int32 InY) : X(InX), Y(InY) {}
-
-    bool operator==(const FChunkCoord& Other) const
-    {
-        return X == Other.X && Y == Other.Y;
-    }
-
-    friend uint32 GetTypeHash(const FChunkCoord& Coord)
-    {
-        return HashCombine(GetTypeHash(Coord.X), GetTypeHash(Coord.Y));
-    }
-};
-
-// Struct for tile data (simplified for demo)
-USTRUCT(BlueprintType)
-struct FTileData
-{
-    GENERATED_BODY()
-    UPROPERTY(BlueprintReadWrite, Category = "Grid")
-    FString Type;
-    UPROPERTY(BlueprintReadWrite, Category = "Grid")
-    float Height;
-    UPROPERTY(BlueprintReadWrite, Category = "Grid")
-    bool bIsWalkable;
-
-    FTileData() : Type("Grass"), Height(0.0f), bIsWalkable(true) {}
-};
-
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class GB_API UGBGridSystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
@@ -61,8 +23,14 @@ public:
 
     virtual void Deinitialize() override;
 
-    // Get or spawn a chunk at given coordinates
-    AGBGridChunk* GetOrCreateChunk(const FChunkCoord& ChunkCoord);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
+    TSubclassOf<AGBGridChunk> ChunkClass;
+
+    // Get chunk at given coordinates
+    AGBGridChunk* GetChunk(const FChunkCoord& ChunkCoord) const;
+
+    // Spawn a chunk at given coordinates
+    AGBGridChunk* CreateChunk(const FChunkCoord& ChunkCoord);
 
     // Apply a stamp template at a global tile position
     // void ApplyStamp(const FVector2D& GlobalTilePos, UStampTemplateAsset* Template);
@@ -71,12 +39,13 @@ public:
     void RemakeGridForMission(const FString& MissionID, UObject* PremadeGridAsset = nullptr);
 
 protected:
+
     // Size of each chunk (e.g., 32 for 32x32 tiles)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid", meta = (ClampMin = "8", ClampMax = "128", UIMin = "8", UIMax = "128"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
     int32 ChunkSize = 32;
 
     // Tile size in world units (for positioning chunks)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid", meta = (ClampMin = "1", UIMin = "1"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
     float TileSize = 100;
 
     // Map of loaded chunks

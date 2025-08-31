@@ -3,32 +3,39 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DynamicMeshActor.h"
+
+#include "Grid/GBGridStructs.h"
+#include "DynamicMesh/DynamicMesh3.h"
+#include "Components/DynamicMeshComponent.h"
+
 #include "GBGridChunk.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class GB_API AGBGridChunk : public ADynamicMeshActor
+class GB_API AGBGridChunk : public AActor
 {
 	GENERATED_BODY()
 
 public:
 
+	AGBGridChunk();
+
 	// OnConstruction is called in the editor whenever the actor is moved or a property is changed.
 	// Similar to Constructor in Blueprints
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	void InitializeChunk(const FGridChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize);
+	void SetChunkParams(const FChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize);
 
-	/** Size of the GridChunk */
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere = "Default")
-	FIntPoint GridChunkSize = { 3,3 };
+	UFUNCTION(CallInEditor)
+	void InitializeChunk();
 
-	/** Please add a variable description */
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Default")
-	double TileSize = 100;
+	void BuildVertices(FDynamicMesh3& Mesh, TArray<int>& VertexIndices);
+
+	void BuildTriangles(FDynamicMesh3& Mesh, const TArray<int>& VertexIndices);
+
+	void UpdateTile(int32 TileX, int32 TileY);
 
 	/** Returns tile location based on given world location */
 	UFUNCTION(BlueprintCallable, Category = "Default")
@@ -38,28 +45,47 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Default")
 	bool TileToGridLocation(FIntPoint& TileIndex, bool Center);
 
+
 protected:
+
+	// Chunk's coordinates in the global grid
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
+	FChunkCoord ChunkCoord;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UDynamicMeshComponent> ChunkMeshComponent;
 
 	// Array of tile data (ChunkSize x ChunkSize)
 	UPROPERTY()
-	TArray<FGridTileData> TileData;
+	TArray<FTileData> TileData;
+
+	// Size of the chunk (tiles per side, e.g., 32 for 32x32)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
+	int32 ChunkSize;
+
+	// World size of each tile (in cm)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
+	float TileSize;
 
 private:
 
-	/** Please add a function description */
-	UFUNCTION(BlueprintPure, Category = "Private")
-	double GridHeight() const;
+	/*
+	UPROPERTY()
+	TArray<FVector> Normals;
 
-	/** Please add a function description */
-	UFUNCTION(BlueprintPure, Category = "Private")
-	double GridWidth() const;
+	UPROPERTY()
+	TArray<FVector2D> UVs;
 
-	/** Checks if tile is valid. WIthin GridChunkSize bounds */
+	UPROPERTY()
+	TArray<FProcMeshTangent> Tangents;
+	*/
+
+	/** Checks if tile is valid. WIthin ChunkSize bounds */
 	UFUNCTION(BlueprintPure, Category = "Private")
 	bool TileValid(FIntPoint TileIndex) const;
 
 	/** Please add a function description */
-	UFUNCTION(BlueprintCallable, Category = "Private")
-	void CreateLine(int32 X, int32 Y, UPARAM(ref)TArray<FVector>& Vertices, UPARAM(ref)TArray<FIntVector>& Triangles);
+	//UFUNCTION(BlueprintCallable, Category = "Private")
+	//void CreateLine(int32 X, int32 Y,TArray<FVector>& InVertices, TArray<int32>& InTriangles);
 
 };
