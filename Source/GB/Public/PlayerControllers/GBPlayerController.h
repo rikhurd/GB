@@ -11,8 +11,6 @@
 class UInputMappingContext;
 class UEnhancedInputComponent;
 class UInputAction;
-class AGBTileBase;
-class UGBGridEntityData;
 
 /**
  * 
@@ -24,12 +22,6 @@ class GB_API AGBPlayerController : public APlayerController
 	
 public:
     AGBPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-    UGBGridEntityData* CurrentData;
-
-    // Enables functionality to choose a tile. Binds input so we can click on tiles.
-    UFUNCTION(BlueprintCallable)
-    void EnableGridEdit(UGBGridEntityData* GridEntityData);
 
     // Disables functionality to choose a tile. Breaks input binds. Currently only has a player input for doing this.
     UFUNCTION(BlueprintCallable)
@@ -66,9 +58,6 @@ private:
     // Movement Functions
     void Move(const FInputActionValue& Value);
     void Choose(const FInputActionValue& Value);
-
-    UFUNCTION(BlueprintCallable)
-    AGBTileBase* GetTileUnderCursor();
 
     TArray<TEnumAsByte<EObjectTypeQuery>> GridObjectTypes;
 };

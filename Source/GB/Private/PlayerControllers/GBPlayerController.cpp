@@ -6,8 +6,6 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Character.h"
-#include "Grid/GBTileBase.h"
-#include "GridEntities/GBGridEntityData.h"
 #include "Grid/GBGridChunk.h"
 
 AGBPlayerController::AGBPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -70,25 +68,6 @@ void AGBPlayerController::Move(const FInputActionValue& Value)
     }
 }
 
-void AGBPlayerController::EnableGridEdit(UGBGridEntityData* GridEntityData)
-{
-    if (IsValid(GridEntityData)) {
-        CurrentData = GridEntityData;
-    }
-    else {
-        UE_LOG(LogTemp, Warning, TEXT("No Data found on %s"), *GetName());
-        return;
-    }
-    /*
-    * Check if Handles are empty then bind them.
-    * Do toggline for the Disable on button press "later"
-    */
-    if (ChooseBindingHandle == 0 && CancelBindingHandle == 0) {
-        ChooseBindingHandle = EnhancedInputComponent->BindAction(ChooseAction, ETriggerEvent::Started, this, &AGBPlayerController::Choose).GetHandle();
-        CancelBindingHandle = EnhancedInputComponent->BindAction(CancelAction, ETriggerEvent::Started, this, &AGBPlayerController::DisableGridEdit).GetHandle();
-    }
-}
-
 void AGBPlayerController::DisableGridEdit()
 {
     if (ChooseBindingHandle != 0 && CancelBindingHandle != 0) {
@@ -98,41 +77,4 @@ void AGBPlayerController::DisableGridEdit()
         ChooseBindingHandle = 0;
         CancelBindingHandle = 0;
     }
-}
-
-void AGBPlayerController::Choose(const FInputActionValue& Value)
-{
-    TObjectPtr<AGBTileBase> HitTile = GetTileUnderCursor();
-
-    if (IsValid(HitTile)) {
-        HitTile->ProcessEditAction(CurrentData);
-    }
-}
-
-AGBTileBase* AGBPlayerController::GetTileUnderCursor()
-{
-    FHitResult HitResult;
-    bool Hit = GetHitResultUnderCursorForObjects(GridObjectTypes, true, HitResult);
-
-    if (Hit && HitResult.GetActor())
-    {
-        AGBGridChunk* HitGrid = Cast<AGBGridChunk>(HitResult.GetActor());
-
-        bool ValidTile = false;
-
-        FIntPoint TileIndex;
-
-        HitGrid->LocationToTile(HitResult.Location, ValidTile, TileIndex);
-
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Tile hit at location: %s"), *HitResult.Location.ToString()));
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Actor hit: %s"), *HitResult.GetActor()->GetName()));
-
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Tile Row: %d, Tile Column: %d"), TileIndex.X, TileIndex.Y));
-
-        // Make it so we get the GRID actor when clicking the 1 Grid tile mesh ontop of the grid or 2 the floor mesh
-        //
-       UE_LOG(LogTemp, Warning, TEXT("Actor hit: %s"), *HitResult.GetActor()->GetName());
-       // return HitTile;
-    }
-    return nullptr;
 }

@@ -18,6 +18,6 @@ public:
 	// Sets default values for this actor's properties
 	//UPathfinding();
 
-	UFUNCTION(BlueprintCallable, Category = "Find Path function")
-	static TArray<AGBTileBase*> FindPath(AGBTileBase* startNode, AGBTileBase* targetNode);
+	// UFUNCTION(BlueprintCallable, Category = "Find Path function")
+	// static TArray<AGBTileBase*> FindPath(AGBTileBase* startNode, AGBTileBase* targetNode);
 };

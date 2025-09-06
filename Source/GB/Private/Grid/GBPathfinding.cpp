@@ -2,7 +2,7 @@
 
 
 #include "Grid/GBPathfinding.h"
-#include "Grid/GBTileBase.h"
+
 // #include "Player/TBPlayerController.h"
 
 /* Sets default values
@@ -10,7 +10,7 @@ UPathfinding::UPathfinding()
 {
 
 }*/
-
+/*
 TArray<AGBTileBase*> UGBPathfinding::FindPath(AGBTileBase* startNode, AGBTileBase* targetNode)
 {
 	if (!IsValid(startNode) || !IsValid(targetNode)) {
@@ -33,7 +33,7 @@ TArray<AGBTileBase*> UGBPathfinding::FindPath(AGBTileBase* startNode, AGBTileBas
 		
 		Could be replaced with a Heap
 
-		*/
+		
 		AGBTileBase* current = toSearch[0];
 		for (AGBTileBase* node : toSearch)
 		{
@@ -87,3 +87,4 @@ TArray<AGBTileBase*> UGBPathfinding::FindPath(AGBTileBase* startNode, AGBTileBas
 	}
 	return TArray<AGBTileBase*>();
 }
+*/
