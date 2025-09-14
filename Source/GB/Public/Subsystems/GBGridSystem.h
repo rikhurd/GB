@@ -29,9 +29,6 @@ public:
     // Get chunk at given coordinates
     AGBGridChunk* GetChunk(const FChunkCoord& ChunkCoord) const;
 
-    // Spawn a chunk at given coordinates
-    AGBGridChunk* CreateChunk(const FChunkCoord& ChunkCoord);
-
     // Apply a stamp template at a global tile position
     // void ApplyStamp(const FVector2D& GlobalTilePos, UStampTemplateAsset* Template);
 

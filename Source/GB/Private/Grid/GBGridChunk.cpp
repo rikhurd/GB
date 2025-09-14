@@ -3,22 +3,60 @@
 
 #include "Grid/GBGridChunk.h"
 #include "DynamicMesh/MeshNormals.h"
+#include "Components/BoxComponent.h"
+#include "Components/DynamicMeshComponent.h"
+#include "DynamicMesh/DynamicMesh3.h"
+#include "Components/SceneComponent.h"
 
 AGBGridChunk::AGBGridChunk()
 {
-    // Create the DynamicMeshComponent
+    ChunkRoot = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+    RootComponent = ChunkRoot;
+
     ChunkMeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("DynamicMeshComponent"));
 
-    SetRootComponent(ChunkMeshComponent);
+    ChunkBounds = CreateDefaultSubobject<UBoxComponent>(TEXT("ChunkBoundsComponent"));
+    ChunkBounds->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    ChunkMeshComponent->SetupAttachment(RootComponent);
+    ChunkBounds->SetupAttachment(RootComponent);
 }
 
 void AGBGridChunk::OnConstruction(const FTransform& Transform)
 {
     Super::OnConstruction(Transform);
 
-#if WITH_EDITOR
-   //InitializeChunk();
-#endif
+    if (RegenerateMesh) {
+        if (!ChunkMeshComponent) {
+            return;
+        }
+
+        // Calculate plane dimensions
+        float HalfWidth = (ChunkSize.X * TileSize) * 0.5f;
+        float HalfHeight = (ChunkSize.Y * TileSize) * 0.5f;
+        float ZPlane = 5.0f;
+
+        // Build a simple quad (two triangles)
+        FDynamicMesh3 Mesh;
+        Mesh.EnableAttributes();
+
+        int32 V0 = Mesh.AppendVertex(FVector3d(-HalfWidth, -HalfHeight, ZPlane));
+        int32 V1 = Mesh.AppendVertex(FVector3d(HalfWidth, -HalfHeight, ZPlane));
+        int32 V2 = Mesh.AppendVertex(FVector3d(HalfWidth, HalfHeight, ZPlane));
+        int32 V3 = Mesh.AppendVertex(FVector3d(-HalfWidth, HalfHeight, ZPlane));
+
+        Mesh.AppendTriangle(V0, V2, V1);
+        Mesh.AppendTriangle(V0, V3, V2);
+
+        ChunkMeshComponent->SetMesh(MoveTemp(Mesh));
+
+        int32 BoxHeight = TileSize * 0.5f * ChunkHeight;
+
+        FVector BoxExtent = FVector(HalfWidth, HalfHeight, BoxHeight);
+        ChunkBounds->SetBoxExtent(BoxExtent);
+
+        ChunkBounds->SetRelativeLocation(FVector(0, 0, BoxHeight));
+    }
 }
 
 void AGBGridChunk::SetChunkParams(const FChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize)
@@ -28,135 +66,15 @@ void AGBGridChunk::SetChunkParams(const FChunkCoord& InChunkCoord, int32 InChunk
     TileSize = InTileSize;
 }
 
-void AGBGridChunk::InitializeChunk()
-{
-    // Initialize tile array
-    int32 VertexCount = (ChunkSize + 1) * (ChunkSize + 1);
-    TileData.Init(FTileData(), VertexCount);
-
-    // Set world position based on chunk coordinates
-    FVector Location(ChunkCoord.X * ChunkSize * TileSize, ChunkCoord.Y * ChunkSize * TileSize, 0.0f);
-    SetActorLocation(Location);
-
-    FDynamicMesh3 Mesh;
-    TArray<int> VertexIndices;
-    VertexIndices.SetNum(VertexCount);
-
-    BuildVertices(Mesh, VertexIndices);
-    BuildTriangles(Mesh, VertexIndices);
-
-    // Enable mesh attributes (normals, etc.)
-    Mesh.EnableAttributes();
-    Mesh.EnableVertexNormals(FVector3f::ZeroVector);  // Initialize normals overlay
-
-    // Quick-compute per-vertex normals based on the triangles
-    UE::Geometry::FMeshNormals::QuickComputeVertexNormals(Mesh);
-
-    // Optional: If you want UVs for texturing, add these too
-    Mesh.EnableVertexUVs(FVector2f::ZeroVector);
-    // Then set UVs per-vertex in BuildVertices, e.g., Mesh.SetVertexUV(VertexID, FVector2f(x / ChunkSize, y / ChunkSize));
-
-    ChunkMeshComponent->SetMesh(MoveTemp(Mesh));
-    ChunkMeshComponent->NotifyMeshUpdated();
-
-    UE_LOG(LogTemp, Log, TEXT("Chunk init"));
-
-}
-
-void AGBGridChunk::BuildVertices(FDynamicMesh3& Mesh, TArray<int>& VertexIndices)
-{
-    /**
-     * BuildVertices generates the full grid of vertex positions for this chunk.
-     * The grid has (ChunkSize+1) x (ChunkSize+1) vertices so that every tile
-     * shares edges and corners with its neighbors (no duplicate vertices).
-     *
-     * Each vertex is placed at (x * TileSize, y * TileSize, Height).
-     * Height is sampled from the TileData array when inside valid tile bounds,
-     * otherwise it defaults to the actor's base Z.
-     *
-     * The resulting vertices are stored in VertexIndices so that BuildTriangles()
-     * can later stitch them into quads (two triangles per tile).
-     */
-    for (int32 y = 0; y <= ChunkSize; y++)
-    {
-        for (int32 x = 0; x <= ChunkSize; x++)
-        {
-            int32 VertexIndex = y * (ChunkSize + 1) + x;
-            float Height = TileData[VertexIndex].Height;
-
-            FVector3d Pos(x * TileSize, y * TileSize, Height);
-            VertexIndices[VertexIndex] = Mesh.AppendVertex(Pos);
-        }
-    }
-}
-
-void AGBGridChunk::BuildTriangles(FDynamicMesh3& Mesh, const TArray<int>& VertexIndices)
-{
-    /**
-     * BuildTriangles connects existing vertices into faces by adding their indices
-     * to the Triangles array. Each group of 3 indices represents one triangle,
-     * defining how the GPU should render the surface.
-     *
-     * In our grid system, every 4 vertices form a single quad (tile). We add two
-     * triangles per quad:
-     *   - Triangle 1: BottomLeft, BottomRight, TopLeft
-     *   - Triangle 2: TopLeft, BottomRight, TopRight
-     *
-     * This function does not create new vertices — it only reuses existing ones
-     * and ensures they are stitched together into renderable geometry.
-     */
-    for (int32 y = 0; y < ChunkSize; y++)
-    {
-        for (int32 x = 0; x < ChunkSize; x++)
-        {
-            // Grab the 4 corners of this tile (quad) from the vertex array
-            int32 BottomLeft = VertexIndices[y * (ChunkSize + 1) + x];
-            int32 BottomRight = VertexIndices[y * (ChunkSize + 1) + (x + 1)];
-            int32 TopLeft = VertexIndices[(y + 1) * (ChunkSize + 1) + x];
-            int32 TopRight = VertexIndices[(y + 1) * (ChunkSize + 1) + (x + 1)];
-
-            // Two triangles per tile: (BL, TL, BR) and (BR, TL, TR)
-            Mesh.AppendTriangle(BottomLeft, TopLeft, BottomRight);
-            Mesh.AppendTriangle(BottomRight, TopLeft, TopRight);
-        }
-    }
-}
-
-void AGBGridChunk::UpdateTile(int32 TileX, int32 TileY)
-{
-    FDynamicMesh3* Mesh = ChunkMeshComponent->GetMesh();
-    if (!Mesh) return;
-
-    // Vertex indices for the 4 corners of this tile
-    int32 BottomLeft = (TileY * (ChunkSize + 1)) + TileX;
-    int32 BottomRight = BottomLeft + 1;
-    int32 TopLeft = BottomLeft + (ChunkSize + 1);
-    int32 TopRight = TopLeft + 1;
-
-    // Heights of the 4 corners (sampled from TileData)
-    float HeightBL = TileData[TileY * ChunkSize + TileX].Height;
-    float HeightBR = TileData[TileY * ChunkSize + (TileX + 1)].Height;
-    float HeightTL = TileData[(TileY + 1) * ChunkSize + TileX].Height;
-    float HeightTR = TileData[(TileY + 1) * ChunkSize + (TileX + 1)].Height;
-
-    // Update mesh vertex positions in 3D
-    Mesh->SetVertex(BottomLeft, FVector3d(TileX * TileSize, TileY * TileSize, HeightBL));
-    Mesh->SetVertex(BottomRight, FVector3d((TileX + 1) * TileSize, TileY * TileSize, HeightBR));
-    Mesh->SetVertex(TopLeft, FVector3d(TileX * TileSize, (TileY + 1) * TileSize, HeightTL));
-    Mesh->SetVertex(TopRight, FVector3d((TileX + 1) * TileSize, (TileY + 1) * TileSize, HeightTR));
-
-    // Tell the mesh component that the geometry has changed
-    ChunkMeshComponent->NotifyMeshUpdated();
-}
-
 bool AGBGridChunk::TileValid(FIntPoint TileIndex) const
 {
-    if (TileIndex.X >= ChunkSize && TileIndex.X < ChunkSize &&
-        TileIndex.Y >= ChunkSize && TileIndex.Y < ChunkSize) {
+    if (TileIndex.X >= ChunkSize.X && TileIndex.X < ChunkSize.X &&
+        TileIndex.Y >= ChunkSize.Y && TileIndex.Y < ChunkSize.Y) {
         return true;
     }
     return false;
 }
+
 /*
 void AGBGridChunk::CreateLine(int32 X, int32 Y, TArray<FVector>& InVertices, TArray<int32>& InTriangles)
 {
@@ -206,8 +124,8 @@ void AGBGridChunk::LocationToTile(FVector Location, bool& Valid, FIntPoint& Tile
     LocalX = FMath::FloorToInt(LocalX / TileSize);
     LocalY = FMath::FloorToInt(LocalY / TileSize);
 
-    LocalX = FMath::Clamp(LocalX, 0, ChunkSize - 1);
-    LocalY = FMath::Clamp(LocalY, 0, ChunkSize - 1);
+    LocalX = FMath::Clamp(LocalX, 0, ChunkSize.X - 1);
+    LocalY = FMath::Clamp(LocalY, 0, ChunkSize.Y - 1);
 
     TileIndex.X = LocalX;
     TileIndex.Y = LocalY;

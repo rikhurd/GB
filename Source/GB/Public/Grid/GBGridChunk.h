@@ -5,11 +5,12 @@
 #include "CoreMinimal.h"
 
 #include "Grid/GBGridStructs.h"
-#include "DynamicMesh/DynamicMesh3.h"
-#include "Components/DynamicMeshComponent.h"
 
 #include "GBGridChunk.generated.h"
 
+class USceneComponent;
+class UDynamicMeshComponent;
+class UBoxComponent;
 /**
  * 
  */
@@ -28,14 +29,8 @@ public:
 
 	void SetChunkParams(const FChunkCoord& InChunkCoord, int32 InChunkSize, float InTileSize);
 
-	UFUNCTION(CallInEditor)
-	void InitializeChunk();
-
-	void BuildVertices(FDynamicMesh3& Mesh, TArray<int>& VertexIndices);
-
-	void BuildTriangles(FDynamicMesh3& Mesh, const TArray<int>& VertexIndices);
-
-	void UpdateTile(int32 TileX, int32 TileY);
+	UPROPERTY(EditAnywhere, Category="Grid")
+	bool RegenerateMesh = true;
 
 	/** Returns tile location based on given world location */
 	UFUNCTION(BlueprintCallable, Category = "Default")
@@ -59,15 +54,25 @@ protected:
 	UPROPERTY()
 	TArray<FTileData> TileData;
 
-	// Size of the chunk (tiles per side, e.g., 32 for 32x32)
+	// Size of the chunk by tiles
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
-	int32 ChunkSize;
+	FIntPoint ChunkSize = FIntPoint(12,12);
+
+	// Chunk height by tiles
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
+	int32 ChunkHeight = 5;
 
 	// World size of each tile (in cm)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid")
-	float TileSize;
+	float TileSize = 100;
 
 private:
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> ChunkRoot;
+
+	UPROPERTY(VisibleAnywhere, Category = "Grid")
+	TObjectPtr<UBoxComponent> ChunkBounds;
 
 	/*
 	UPROPERTY()
